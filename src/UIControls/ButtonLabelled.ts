@@ -1,7 +1,7 @@
 import { sgWorld } from "../Axiom";
 import { Button } from "../Button";
 import { ControllerReader } from "../ControllerReader";
-import { GetObject, ProgramManager, roomToWorldCoord } from "../ProgramManager";
+import { deleteItemSafe, GetObject, ProgramManager, roomToWorldCoord } from "../ProgramManager";
 
 export class ButtonLabelled extends Button {
 
@@ -47,7 +47,7 @@ export class ButtonLabelled extends Button {
   destroy(): void {
     super.destroy();
     if (!this.labelId) return;
-    ProgramManager.getInstance().deleteItemSafe(this.labelId)
+    deleteItemSafe(this.labelId)
   }
 
 

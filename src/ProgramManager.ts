@@ -2,12 +2,13 @@ import { sgWorld } from "./Axiom";
 import { sessionManager } from "./Axiom";
 import { Button } from "./Button";
 import { ControllerReader } from "./ControllerReader";
-import { debug, debugHandleRefreshGesture } from "./Debug";
+import { debug, debugHandleRefreshGesture, saveConsole } from "./Debug";
 import { DesktopInputManager } from "./DesktopInputManager";
 import { Quaternion } from "./math/quaternion";
 import { Vector } from "./math/vector";
 import { degsToRads, radsToDegs } from "./Mathematics";
 import { UIManager } from "./UIManager";
+import { UndoManager } from "./UndoManager";
 import { UserModeManager } from "./UserManager";
 
 export function setComClientForcedInputMode() {
@@ -137,7 +138,7 @@ export class ProgramManager {
 
   private mode = ProgramMode.Unknown;
   private modeTimer = 0;
-  public currentlySelected?= "";
+  public currentlySelected = "";
   private colorItemsTimeout: number = 0;
 
   getMode() { return this.mode; }
@@ -170,22 +171,6 @@ export class ProgramManager {
 
   private constructor() {
     console.log("ProgramManager:: constructor");
-  }
-
-  /**
- * stops errors if the object doesn't exist
- *
- * @param {*} id
- */
-  deleteItemSafe(id: string) {
-    try {
-      const object = sgWorld.Creator.GetObject(id);
-      if (object) {
-        sgWorld.Creator.DeleteObject(id);
-      }
-    } catch (error) {
-      // fine
-    }
   }
 
   deleteGroup(groupName: string) {
@@ -377,6 +362,12 @@ export class ProgramManager {
         sgWorld.AttachEvent("OnCommandExecuted", (CommandID: string, ...parameters: any[]) => {
           console.log(CommandID + " " + JSON.stringify(parameters))
         });
+        sgWorld.AttachEvent("OnKeyboard", (Message, Char, KeyState) => {
+          // left control and l
+          if (KeyState === 2 && Char === 76 && Message == 256) {
+            saveConsole();
+          }
+        });
         // TODO this was not working in collab mode. Needs more testing. May not work?
         // sgWorld.AttachEvent("OnProjectTreeAction", (CommandID: string, parameters: any) => {
         //   // if in collab mode make sure the models are coloured on the other machine
@@ -426,9 +417,9 @@ function Update() {
       ProgramManager.getInstance().Update();
     } catch (e) {
       ++recentProblems;
-      console.log("Update error");
-      console.log(e);
-      console.log("CallStack:\n" + debug.stacktrace(debug.info));
+      console.error("Update error");
+      console.error(e);
+      console.error("CallStack:\n" + debug.stacktrace(debug.info));
       setTimeout(() => {
         if (recentProblems > 0) {
           console.log(String(recentProblems) + " other problems");
@@ -449,9 +440,9 @@ function Draw() {
       ProgramManager.getInstance().Draw();
     } catch (e) {
       ++recentProblems;
-      console.log("Draw error");
-      console.log(e);
-      console.log("CallStack:\n" + debug.stacktrace(debug.info));
+      console.error("Draw error");
+      console.error(e);
+      console.error("CallStack:\n" + debug.stacktrace(debug.info));
       setTimeout(() => {
         if (recentProblems > 0) {
           console.log(String(recentProblems) + " other problems");
@@ -570,6 +561,7 @@ function traverseTree(current: string) {
   }
 }
 
+
 function findInTree(current: string, find: string): string | null {
   while (current) {
     var currentName = sgWorld.ProjectTree.GetItemName(current);
@@ -606,6 +598,21 @@ function colorItems(parentId: string, color: string) {
     // swallow it. There doesn't appear to be a way to tell if there is another 
     // item so it fails eventually when you do get next item
   }
+
 }
 
-
+/**
+ * stops errors if the object doesn't exist
+ *
+ * @param {*} id
+ */
+export function deleteItemSafe(id: string) {
+  try {
+    const object = sgWorld.Creator.GetObject(id);
+    if (object) {
+      sgWorld.Creator.DeleteObject(id);
+    }
+  } catch (error) {
+    // fine
+  }
+}

@@ -16,6 +16,7 @@ import { UserMode } from "./UserManager";
 import { ButtonModel } from "./UIControls/ButtonModel";
 import { bookmarksConfig } from "./config/bookmarks";
 import { ControllerReader } from "./ControllerReader";
+import { UndoManager } from "./UndoManager";
 
 export class UIManager {
   menusTable: Menu[] = [];
@@ -282,7 +283,6 @@ export class UIManager {
     const currentMenu = getMenu();
     if (currentMenu.isVisible) {
       currentMenu.show(false);
-      return;
     }
 
     const controls: Button[] = [];
@@ -534,7 +534,7 @@ export class UIManager {
       try {
         const modelObject = sgWorld.Creator.CreateModel(roomPos, modelPath, 1, 0, grp, orbatModel.modelName);
         // add the created model to the undo list
-        ProgramManager.getInstance().userModeManager?.undoObjectIds.push(modelObject.ID);
+        UndoManager.getInstance().AddItem(modelObject.ID);
         // set the scale value based on the current zoom level
         var scaleValue = roomPos.Altitude * this.orbatScaleFactor;
 
@@ -556,6 +556,9 @@ export class UIManager {
       } catch {
         console.log("could not add model: " + modelPath);
       }
+
+      // add all the models as one to the undo manager. This means one undo will remove them all
+      UndoManager.getInstance().AddItems(modelsToPlace.map(m => m.ID));
 
       // this is to tint models on the way in
       // if (model.forceType === "enemy"){
@@ -589,6 +592,10 @@ export class UIManager {
   }
 
   GetDeviceTypeOverride() {
+    return GetDeviceType();
+    if (GetDeviceType() === DeviceType.Desktop) {
+      return DeviceType.Wall;
+    }
     return GetDeviceType();
   }
 
