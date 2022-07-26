@@ -20,6 +20,17 @@ export class Menu {
   public recomputeButtons = true;
   public isVisible: boolean = true;
 
+  /**
+   * TODO implement this signature
+   * @param anchor The position of the first button in room space
+   * @param orientation The orientation of the menu in room space
+   * @param buttonSize The size for each button in room space
+   * @param stackSize The number of buttons that can fit in one stack before moving in the secondary direction
+   * @param horizontal Should the buttons start by going horizontally. Default true
+   * @param down Should the buttons go down (not up). Default true
+   * @param right Should the buttons go right (not left). Default true
+   */
+
   constructor(public width: number, public height: number, public anchor: Vector<3>, public orientation: Quaternion, public anchorPosition: [number, number], public topAligned: boolean, public leftAligned: boolean, public horizontal: boolean, public buttonSize: number = Infinity, public rows: number = 0, public cols: number = 0) {
     // anchorPosition is bottomLeft + [x * width, y * height]
 
